@@ -1789,21 +1789,33 @@ Make sure to keep track of the various features and conditions you tried before 
 <p><strong>Answer</strong>: A good example of supervised learning algorithm is if you want to detect whether an email is 
 ham or spam. You would start out with a corpus of text which has already been labeled as ham or spam then 
 try to build a classifier (based on previous data) which generalizes to new data.</p>
+<p>Some possible features to help build the classifier:</p>
+<ol>
+<li><p>Email subject: Spammmers send a particular (with same subject line) email to lots of receipients.  Using TF-IDF would give both the frequency and how important a particular word is in spam emails. If the following spam words appear this often, then it's likely to be spam.</p>
+</li>
+<li><p>Sender email address: Naive Spammmers might send lots of emails from the same or often similarily named email addresses. Parsing out the email address and looking for duplicates or similarily named addresses could be an important feature. (bob@spam.com, bob+1@spam.com etc)</p>
+</li>
+<li><p>Email body content: Since the same email is going to lots of recipients, chances are likely the body of the email will be identical or same. Using TF-IDF would give both the frequency and how important a particular word is in spam emails. Ham emails would have a very different TF-IDF output.</p>
+</li>
+<li><p>etc...</p>
+</li>
+</ol>
 
 </div>
 </div>
 </div>
-<div class="cell border-box-sizing text_cell rendered">
-<div class="prompt input_prompt">
-</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
 <div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<blockquote><p><strong>Tip:</strong> If we want to share the results of our analysis with others, we aren't limited to giving them a copy of the iPython Notebook (.ipynb) file. We can also export the Notebook output in a form that can be opened even for those without Python installed. From the <strong>File</strong> menu in the upper left, go to the <strong>Download as</strong> submenu. You can then choose a different format that can be viewed more generally, such as HTML (.html) or<br>
-PDF (.pdf). You may need additional packages or software to perform these exports.</p>
-</blockquote>
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span></span> 
+</pre></div>
 
 </div>
 </div>
+</div>
+
 </div>
     </div>
   </div>
