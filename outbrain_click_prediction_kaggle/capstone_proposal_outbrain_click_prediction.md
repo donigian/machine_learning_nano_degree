@@ -12,23 +12,56 @@ The following proposal is a machine learning project to build a predictive model
 
 > Every day we stumble on news stories relevant to our communities or experience the serendipity of finding an article covering our next travel destination. Outbrain, the web’s leading content discovery platform, delivers these moments while we surf our favorite sites.
 
-This project is of special interest due to it's relevance with user content consumption and advertising. Any insights as well as lessons learned would be directly transferrable to a wide variety of problems across several business verticals. 
+The competition began on October 5, 2016 while the final submission must be made by Jan 18th, 2017. Only two submissions per day are allowed.
+The top 3 of the leaderboard are:
+
+| Competitor        | Score           |  
+| ------------- |:-------------:| 
+| Tick Tock      | 	0.69466 |  
+| xiaohaoxx      | 		0.69128 |  
+| clustifier      | 	0.68755 |  
+ 
+ 
+This project is of special interest to me due to it's relevance with user content consumption and advertising. Any insights as well as lessons learned would be directly transferrable to a wide variety of problems across several business verticals. Additionaly, Kaggle competitions offer a great opportunity to solve real world problems in a collaborative, competitive and open learning envionrment. Doing well on Kaggle competitions helps enhance my personal experience and online brand.
 
 ### Problem Statement
 
 Currently, Outbrain pairs relevant content with curious readers in about 250 billion personalized recommendations every month across many thousands of sites. In this competition, Kagglers are challenged to predict which pieces of content its global base of users are likely to click on. Improving Outbrain’s recommendation algorithm will mean more users uncover stories that satisfy their individual tastes.
 
-The task is to rank the recommendations in each group by decreasing predicted likelihood of being clicked.
+The task is to rank the recommendations in each group by decreasing predicted likelihood of being clicked. This is a **supervized learning** problem which will require **a multi-class classifier** to be implemented. The predictors (features) are attributes of page views, user clicks, promoted content, and web page content. The labels (target) are the id ads. See example submission below for details.
 
 ### Datasets and Inputs
 
-The dataset for this challenge contains a sample of users’ page views and clicks, as observed on multiple publisher sites in the United States between 14-June-2016 and 28-June-2016. Each viewed page or clicked recommendation is further accompanied by some semantic attributes of those documents. For full details, see data specifications below.
+The dataset for this challenge contains a sample of users’ page views and clicks, as observed on multiple publisher sites in the United States between 14-June-2016 and 28-June-2016. Each viewed page or clicked recommendation is further accompanied by some semantic attributes of those documents. For full details, see data specifications below. 
 
 The dataset contains numerous sets of content recommendations served to a specific user in a specific context. Each context (i.e. a set of recommendations) is given a display_id. In each such set, the user has clicked on at least one recommendation. The identities of the clicked recommendations in the test set are not revealed. The task is to rank the recommendations in each group by decreasing predicted likelihood of being clicked.
+
 
 #### Data Fields
 
 Each user in the dataset is represented by a unique id (uuid). A person can view a document (document_id), which is simply a web page with content (e.g.  a news article). On each document, a set of ads (ad_id) are displayed. Each ad belongs to a campaign (campaign_id) run by an advertiser (advertiser_id). You are also provided metadata about the document, such as which entities are mentioned, a taxonomy of categories, the topics mentioned, and the publisher.
+
+
+| File        | Dimensions (rows, columns)          |  Text or Numeric      |  
+| ------------- |:-------------:| -----:|
+| clicks_train     | 	87141731, 3 | Numeric |
+| clicks_test      | 		32225162, 2 | Numeric |  
+| documents_categories      | 	5481475, 3|  Numeric  |
+| documents_entities      | 	5537552, 3 | Alpha Numeric |
+| documents_meta      | 	2999334, 4|  Alpha Numeric  |
+| documents_topics      | 11325960, 3 | Numeric |
+| events      | 23120126, 6 |  Alpha Numeric |
+| promoted_content      | 	559583, 4 | Numeric |
+| page_views_sample      | 	9999999, 6 | Alpha Numeric|  
+
+#### Pre-processing
+There are several pre-processing steps which will need to be performed, including but not limited to:
++ join several segments (tables of data) with specified join keys
++ identify any gaps of referential integrity (missing rows from any segments during join)
++ apply log transformations for feature scaling
++ parse geo-location field into seperate features
++ convert string date representations to date variables (will eventually add features for day, month, year as part of feature engineering)
++ identify null & missing data, apply a mnemonic or drop it (depending on size & impact relative to other training data)
 
 #### File Descriptions
 
@@ -105,9 +138,14 @@ Let's break this down:
 
 Given this is a Kaggle competition, the benchmark model will be the score of my model on the private leaderboard (data I don't have access to). Additionally, I plan to create an initial benchmark model after generating the training data set without doing any feature engineering or hyper-parameter tuning just to have a point of reference for the rest of the model training process.
 
-### Evaluation Metrics
-Given this is a Kaggle competition, the evaluation metric has been specified as the [**Mean Average Precision @12**](https://www.kaggle.com/c/outbrain-click-prediction/details/evaluation). The link will take you to the mathematical representation. 
+My goal is to target the top 20% of the public leaderboard.
 
+### Evaluation Metrics
+Given this is a Kaggle competition, the evaluation metric has been specified as the [**Mean Average Precision @12**](https://www.kaggle.com/c/outbrain-click-prediction/details/evaluation). 
+
+![Eval Equation](../assets/Evaluation_Outbrain_Click_Prediction__Kaggle.png)
+
+The mean average precision metric intutively is suitable for advertising since we are interested in how precise our ad predictions are given historical data collected from users.
 
 ### Project Design
  
