@@ -429,7 +429,7 @@ This supervized learning project requires I build a regressor. Since I have no i
 
 You can find more details about the test harness in the implementation section. The overall idea is to iterate over a list of regression algorithms listed below and analyze how each performs. I will then take the top 3 performing ones and tune further.
 
-Candidate Regression Algorithms
+Candidate Regression Algorithms (using default parameters documented in scikit-learn docs)
 
 + LASSO 
   + During EDA, noticed several features were linearly correlated to target. 
@@ -445,7 +445,13 @@ Candidate Regression Algorithms
 
 
 ### Benchmark
-My goal for this project was to place among top 20% of the Kaggle public leaderboard. I'm currently ranked in top 15%.
+Kaggle maintains a portion of the data for each competition (including this one) as a hold out set which is used to evaluate the generalizability of our model to new unseen data (aka private leaderboard).  
+
+Kaggle competitions are decided by a model's performance on a test data set. Kaggle maintains the answers for the test dataset, but withholds them to compare with the submitted predictions. The Public Score is what you receive after each submission (calculated using a statistical evaluation metric described on the Evaluation page). The Public Score is being determined from only a fraction of the test data set (25-33%). This is the Public Leaderboard, and it shows some the performance of your submission relative to others during the competition.
+
+When the competition ends, Kaggle takes the selected submissions and score the predictions against the REMAINING FRACTION of the test set. You never receive ongoing feedback about your score on this portion; hence the name (Private leaderboard). Final competition results are based on the Private leaderboard, and the Winner is the person(s) at the top of the Private Leaderboard. This separation of the test set into public and private portions is what ensures that the most accurate but generalized model is the one that wins the challenge. If you based your model solely on the public data which gives you constant feedback, you run the danger of a model that overfits to the specific noise in that data. This addresses one of the hard challenges in data science is to avoid overfitting, by leaving your model flexible to out-of-sample data.
+
+My goal for this project was to place among top 20% of the Kaggle public leaderboard.  
 
 In order to perform well, it's critical to define a benchmark and cross validation strategy locally. I created a method to calculate the Root Mean Squared Error and used it locally as I experimented with various algorithms.
 
@@ -459,18 +465,36 @@ def rmse_cv(model):
 
 ## III. Methodology
 
-### Data Preprocessing
+### Data Preprocessing & Feature Engineering
 For most real world data science projects, data preprocessing often ends up taking a large portion of the effort and time. Fortuantely, this is less of an issue for Kaggle competitions since the data is already represented in a tabular format. 
 
 Since some learning algorithms are negatively impacted by differing scales of the raw data, I performed a log transformation on the numeric features as well as the target. 
 
 Additionally, due to the large number of missing values (see EDA above), I used the scikit-learn imputer module to impute the mean for missing values. 
 
+Both our training & test data sets contain both numerical (quantitative) and categorical (qualitative) features. Since scikit-learn expects a tabular numerical training data set, I must convert all categoricals using one-hot encoding (aka binary features).
+
+Features to engineer include but not limited to:
+
++ calculate age of property (relative to oldest)
++ years till remodel
++ linear combinations of square footage attributes (DID NOT HELP!)
++ one hot encoding of categorical features
+
+Feature selection will be done via:
+
++ dropping highly correlated features (see correlation section above)
++ PCA
++ Recusive Feature Elimination (DID NOT HELP!)
++ LASSO
+ 
 ### Implementation
 
 #### Evaluate Algorithms (Spot Check) with Standardization
 
 I suspect that differing scales of the raw data may be negatively impacting the skill of some of the algorithms. I have performed a standardization in which data is transformed such that each attribute has a mean value of zero and a standard deviation of 1.
+
+Please look at the Jupyter notebook for implementation details including parameter values.
 
 According to the figure below, here are the results (lower is better):
 
@@ -500,11 +524,12 @@ I first started with the best performing model (XGBoost) according to the test h
 	+ Tranform Neighborhoods into {Poor, MiddleIncome, Affluent} based on the SalePrice in training data  
 + Linear construction
 	+ create new features to combine numeric features with various operators (x_i + x_j, x_i * x_j, x_i ^ 2, log x_i )
-+ One hot encode categorical values (binary features)
 
-These features didn't help my local cross validation score for XGBoost. 
+These features didn't help my local cross validation score for XGBoost but did help for LASSO.
 
-**Kaggle Submissions**
+I've documented the series of refinements I've made along with Kaggle submissions for promising refinements.
+
+**Refinement Workflow Results**
 
 | Model Description       | Local CV        |  LeaderBoard   |  
 | ------------- |:-------------:| -----:|
@@ -520,23 +545,18 @@ These features didn't help my local cross validation score for XGBoost.
 | Ensemble XGBoost (20%) with LASSO (80%)    |  0.128 | 0.1203 (top 15%)| 
 | Ensemble XGBoost (20%) with LASSO (80%) w/ YearBuilt & YearRemodAdd engineered features  |  0.12243 | 0.11968 (top 14%) |
 | Ensemble XGBoost (20%) with LASSO (80%) w/ linear combination of engineered features  |  0.12255 | - |  
+| Ensemble XGBoost (20%) with LASSO (80%) w/ highly correlated features dropped |  0.123962 | 0.11965 | 
 
 ## IV. Results
 
 ### Model Evaluation and Validation
-In this section, the final model and any supporting qualities should be evaluated in detail. It should be clear how the final model was derived and why this model was chosen. In addition, some type of analysis should be used to validate the robustness of this model and its solution, such as manipulating the input data or environment to see how the model’s solution is affected (this is called sensitivity analysis). Questions to ask yourself when writing this section:
-- _Is the final model reasonable and aligning with solution expectations? Are the final parameters of the model appropriate?_
-- _Has the final model been tested with various inputs to evaluate whether the model generalizes well to unseen data?_
-- _Is the model robust enough for the problem? Do small perturbations (changes) in training data or the input space greatly affect the results?_
-- _Can results found from the model be trusted?_
+
+The iterative refinement workflow documented above led me to the final model which is an esemble of two submodels (XGBoost & LASSO). I've validated the model's performance with the public leaderboard and am currently among top 14%. One of the crucial aspects for my model to work is to perform the same transformations on training vs production (hold out) test set. I've tested the model against the test set provided by Kaggle. I've made sure this is done in a consistent manner which prevents leakage from occuring as well as well as being robust to small perturbations (log feature transformations). The generalizability of the model will be evident at the end of competition. The results can be trusted since it takes care of the precautions mentioned above.
 
 ### Justification
-Kaggle maintains a portion of the data for each competition (including this one) as a hold out set which is used to evaluate the generalizability of our model to new unseen data (aka private leaderboard).  
+As you can see from the refinement result table, the final results found are stronger than the benchmark result reported earlier. The final model is a linear combination (80%) LASSO and (20%) XGBoost. Due to the high ranking on the public leaderboard, I conclude the model has sufficient predictive power to predict Sale Price.
 
-
-Kaggle competitions are decided by a model's performance on a test data set. Kaggle maintains the answers for the test dataset, but withholds them to compare with the submitted predictions. The Public Score is what you receive after each submission (calculated using a statistical evaluation metric described on the Evaluation page). The Public Score is being determined from only a fraction of the test data set (25-33%). This is the Public Leaderboard, and it shows some the performance of your submission relative to others during the competition.
-
-When the competition ends, Kaggle takes the selected submissions and score the predictions against the REMAINING FRACTION of the test set. You never receive ongoing feedback about your score on this portion; hence the name (Private leaderboard). Final competition results are based on the Private leaderboard, and the Winner is the person(s) at the top of the Private Leaderboard. This separation of the test set into public and private portions is what ensures that the most accurate but generalized model is the one that wins the challenge. If you based your model solely on the public data which gives you constant feedback, you run the danger of a model that overfits to the specific noise in that data. This addresses one of the hard challenges in data science is to avoid overfitting, by leaving your model flexible to out-of-sample data.
+Furthermore, the output of the feature importance tables provided additional support as it's consistent with our domain knowledge and our intution. 
 
 ## V. Conclusion
 
@@ -544,14 +564,18 @@ When the competition ends, Kaggle takes the selected submissions and score the p
 
 ### RSME (Train vs Test)
 
+You can observe that the RSME for training is much lower than test which expected since we trained using the training data set and our test set doesn't contain targets. You can also see that the model doesn't perform any better (flat line) after 50 estimators on the test set.
+
 ![Eval Equation](../assets/ames/train_vs_test_rsme_xgboost.png)
 
 ### Feature Importances
-XGBoost 
+Model interpretability is key to build trust in the output of the model. Feature importance table provides the the contributions of each feature to the final model in sorted order.
+ 
+#### XGBoost Feature Importances
 
 ![Eval Equation](../assets/ames/xgboost_feature_importances.png)
 
-LASSO
+#### LASSO Feature Importances
 
 ```
 0.43238483795 HouseStyle
@@ -635,11 +659,8 @@ LASSO
 -0.292551006308 BsmtUnfSF
 ```
 
-### HeatingQC vs SalePrice
-
-![Eval Equation](../assets/ames/heatingqc_vs_saleprice.png )
-
-###
+### Hyperparameter vs Cross Validation Score
+This plot illustrates the RMSE relative to various values for `alpha`. You can see that the minimum RMSE is achieved when `alpha=10` and greater values of alpha results in larger (undesirable) values for RMSE.
 
 ![Eval Equation](../assets/ames/xgboost_validation_alpha_tune.png )
 
@@ -647,7 +668,8 @@ LASSO
 It's important to spot outliers in our target. The IQR range seems to be from 120K - 205K.
 ![Eval Equation](../assets/ames/saleprice_whisker.png )
 
-###
+### Target Variable Outlier Analysis
+There were a number of values in the target variable which were outliers. It's important to note the IQR range and to spot check them against our predicted results.
 
 ![Eval Equation](../assets/ames/ )
 
@@ -692,6 +714,7 @@ I plan to work on this Kaggle competition well after my capstone project submiss
 
 One of the activities I found tremendously useful is reading through the forums. Not only do you find code refactoring opportunitties, but you also gain insight into how others decide to approach this learning problem. Data science often involves experimentation and contributing my EDA as well as baseline model is an improvement both personally and to the community at large.
 
+Another improvement I could do is define a more aggresive strategy for dealing with outliers. The most obvious is to remove them.
 
 -----------
 
