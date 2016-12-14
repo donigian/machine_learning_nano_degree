@@ -13721,7 +13721,8 @@ I certainly wouldn't want to ride with this driving agent, due to the low reliab
 </ul>
 <p>Do not need:</p>
 <ul>
-<li><strong>left</strong>, <strong>right</strong> are less important due to U.S traffic right of way laws</li>
+<li><strong>right</strong> is less important due to U.S traffic right of way laws</li>
+<li><strong>left</strong> omission makes model easier to train as accidents will be rare</li>
 <li><strong>deadline</strong> is used to determine the number of steps remaining till trip completition. Although deadline is important, we can infer trip completition (reliability) by looking at the series of waypoints.</li>
 </ul>
 
@@ -13757,9 +13758,10 @@ I certainly wouldn't want to ride with this driving agent, due to the low reliab
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p><strong>Answer:</strong></p>
-<p><strong>light</strong> = 2 states
-<strong>waypoint</strong> = 3 states</p>
-<p>total # of states = 2 * 3 = 6</p>
+<p><strong>light</strong> = 2 states</p>
+<p><strong>waypoint</strong> = 3 states</p>
+<p><strong>oncoming</strong> = 4 states</p>
+<p>total # of states = 2 x 3 x 4 = 24</p>
 <p>I believe that the agent could learn a policy to reach the end state with a reasonable number of trials.</p>
 
 </div>
